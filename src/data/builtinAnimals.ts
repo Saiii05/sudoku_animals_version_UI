@@ -1,4 +1,4 @@
-import { Animal } from '../types';
+import type { Animal } from '../types';
 
 export const builtinAnimals: Animal[] = [
   { id: 'cat', name: 'Cat', emoji: '🐱', source: 'builtin' },

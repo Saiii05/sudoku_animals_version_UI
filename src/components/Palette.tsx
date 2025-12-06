@@ -1,6 +1,5 @@
 // src/components/Palette.tsx
-import React from 'react'
-import { Animal } from '../types'
+import type { Animal } from '../types'
 
 export default function Palette({ onSelect, selectedAnimal, animals }: { onSelect: (animal: Animal) => void, selectedAnimal: Animal | null, animals: Animal[] }) {
   // Validate animals

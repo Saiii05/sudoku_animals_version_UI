@@ -1,12 +1,11 @@
-// src/App.tsx
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Grid from './components/Grid'
 import Palette from './components/Palette'
-import { emptyPuzzle, generatePuzzle, isMoveValid, solvePuzzle } from './utils/sudoku'
+import { generatePuzzle, solvePuzzle } from './utils/sudoku'
 import { builtinAnimals } from './data/builtinAnimals'
 import { exportPuzzle, importPuzzle } from './utils/share'
 import TutorialOverlay from './components/TutorialOverlay'
-import { Animal, SudokuBoard, Puzzle } from './types'
+import type { Animal, Puzzle } from './types'
 
 /**
  * Defensive App:
@@ -61,7 +60,6 @@ export default function App() {
         ...prev,
         board: prev.board.map(row => [...row]),
       };
-      const cell = copy.board[r][c]
       if (pencil) {
         // Pencil mode not implemented yet
       } else {

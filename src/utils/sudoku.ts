@@ -1,6 +1,5 @@
 // src/utils/sudoku.ts
-import { Puzzle, Animal } from '../types';
-import { builtinAnimals } from '../data/builtinAnimals';
+import type { Puzzle, Animal } from '../types';
 
 export const SIZE = 9
 export const BOX = 3
