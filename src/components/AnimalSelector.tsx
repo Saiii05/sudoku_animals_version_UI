@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Animal } from '../types';
+import type { Animal } from '../types';
 import { builtinAnimals } from '../data/builtinAnimals';
 
 interface AnimalSelectorProps {

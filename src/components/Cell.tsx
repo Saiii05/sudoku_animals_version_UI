@@ -1,5 +1,4 @@
-import React from 'react';
-import { Animal } from '../types';
+import type { Animal } from '../types';
 
 interface CellProps {
   animalId: string | null;

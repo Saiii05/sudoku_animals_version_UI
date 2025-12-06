@@ -1,4 +1,4 @@
-import { Animal, SudokuBoard } from '../types';
+import type { Animal, SudokuBoard } from '../types';
 
 export function exportPuzzle(board: SudokuBoard, animals: Animal[]): string {
   const data = {

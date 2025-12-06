@@ -1,5 +1,5 @@
 // src/components/TutorialOverlay.tsx
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { saveToLocalStorage, loadFromLocalStorage } from '../utils/storage'
 
 export default function TutorialOverlay() {

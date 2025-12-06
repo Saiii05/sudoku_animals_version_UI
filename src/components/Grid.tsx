@@ -1,6 +1,5 @@
 // src/components/Grid.tsx
-import React from 'react'
-import { SudokuBoard, Animal } from '../types'
+import type { SudokuBoard, Animal } from '../types'
 
 type Props = {
   board: SudokuBoard
