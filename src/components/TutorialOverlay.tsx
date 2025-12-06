@@ -1,51 +1,52 @@
-import React, { useState } from 'react';
-import { saveToLocalStorage, loadFromLocalStorage } from '../utils/storage';
+// src/components/TutorialOverlay.tsx
+import React, { useEffect, useState } from 'react'
+import { saveToLocalStorage, loadFromLocalStorage } from '../utils/storage'
 
-interface TutorialOverlayProps {
-  onClose: () => void;
-}
+export default function TutorialOverlay() {
+  const [dismissed, setDismissed] = useState(() => loadFromLocalStorage('tutorial-dismissed') === true)
+  const [step, setStep] = useState(0)
 
-const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onClose }) => {
-  const [step, setStep] = useState(0);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
-
-  const handleNext = () => {
-    if (step < 2) {
-      setStep(step + 1);
-    } else {
-      if (dontShowAgain) {
-        saveToLocalStorage('animal-sudoku-tutorial-dismissed', true);
+  useEffect(() => {
+    if (!dismissed) {
+      const handler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setDismissed(true)
       }
-      onClose();
+      window.addEventListener('keydown', handler)
+      return () => window.removeEventListener('keydown', handler)
     }
-  };
+  }, [dismissed])
+
+  if (dismissed) return null
 
   const steps = [
-    "Welcome to Animal Sudoku! Select 9 animals to play with.",
-    "Click on an animal in the palette to select it, then click on a cell to place it.",
-    "Use the toolbar to undo, redo, get hints, and more. Enjoy!",
-  ];
+    { title: 'Welcome to Animal Sudoku', text: 'Choose animals from the palette and place them on the board. Use pencil mode for notes.' },
+    { title: 'Pencil Mode', text: 'Toggle Pencil to add multiple candidates inside a cell.' },
+    { title: 'Hint Button', text: 'Use the hint (💡) to reveal a safe placement.' },
+  ]
+
+  function closeAndPersist() {
+    saveToLocalStorage('tutorial-dismissed', true)
+    setDismissed(true)
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg max-w-md w-full text-center">
-        <p className="text-lg mb-4">{steps[step]}</p>
-        <button onClick={handleNext} className="px-4 py-2 bg-blue-500 text-white rounded mb-4">
-          {step < 2 ? 'Next' : 'Finish'}
-        </button>
-        <div className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            id="dont-show-again"
-            checked={dontShowAgain}
-            onChange={(e) => setDontShowAgain(e.target.checked)}
-            className="mr-2"
-          />
-          <label htmlFor="dont-show-again">Don't show again</label>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }}>
+      <div style={{ width: 520, maxWidth: 'calc(100% - 24px)', background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 8px 30px rgba(2,6,23,0.6)' }}>
+        <h3 style={{ margin: 0 }}>{steps[step].title}</h3>
+        <p style={{ marginTop: 8 }}>{steps[step].text}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
+          <div>
+            <button onClick={() => setStep(s => Math.max(0, s - 1))} className="px-4 py-2 bg-blue-500 text-white rounded-lg" disabled={step === 0}>Back</button>
+            <button onClick={() => setStep(s => Math.min(steps.length - 1, s + 1))} className="px-4 py-2 bg-blue-500 text-white rounded-lg ml-2" disabled={step === steps.length - 1}>Next</button>
+          </div>
+          <div>
+            <label style={{ marginRight: 8 }}>
+              <input type="checkbox" onChange={e => { if (e.target.checked) closeAndPersist() }} /> Don't show again
+            </label>
+            <button onClick={closeAndPersist} className="px-4 py-2 bg-blue-500 text-white rounded-lg">Close</button>
+          </div>
         </div>
       </div>
     </div>
-  );
-};
-
-export default TutorialOverlay;
+  )
+}

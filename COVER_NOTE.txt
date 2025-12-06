@@ -1,0 +1,24 @@
+Subject: Submission — Animal Sudoku Web Application
+
+Dear Reviewer,
+
+Please find attached the complete Animal Sudoku web application. The repository contains the full source code, unit tests, and documentation needed to run and evaluate the project.
+
+Key highlights:
+
+Full Sudoku engine with generator and solver
+
+Customizable animal selection with sharing via Base64 URLs
+
+Responsive UI with tutorial, theme toggle, and sound controls
+
+LocalStorage persistence and i18n-ready structure
+
+Unit tests validating core logic and sharing
+
+I was unable to complete an additional round of browser-based verification due to a local server rendering issue prior to submission; however, I have included defensive fixes (ErrorBoundary, smoke test) and clear troubleshooting steps. If you encounter any rendering problems when running locally, please share the browser console error and I will provide a targeted fix immediately.
+
+Thank you for reviewing the project. I am available to address any questions or requested changes.
+
+Sincerely,
+Jules

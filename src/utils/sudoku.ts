@@ -1,140 +1,118 @@
-import { SudokuBoard, Puzzle, Animal, Conflict } from '../types';
+// src/utils/sudoku.ts
+import { Puzzle, Animal } from '../types';
+import { builtinAnimals } from '../data/builtinAnimals';
 
-const SIZE = 9;
+export const SIZE = 9
+export const BOX = 3
 
-export function emptyPuzzle(): SudokuBoard {
-  return Array(SIZE).fill(null).map(() => Array(SIZE).fill(null));
+// Create a proper independent 9x9 puzzle (no shared references)
+export function emptyPuzzle(): Puzzle {
+  return {
+    board: Array.from({ length: SIZE }, () =>
+      Array.from({ length: SIZE }, () => null)
+    ),
+    solution: Array.from({ length: SIZE }, () =>
+      Array.from({ length: SIZE }, () => null)
+    ),
+    difficulty: 'Easy',
+  };
 }
 
-function shuffle(array: any[]) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
+// helpers
+function inRow(p: Puzzle, r: number, v: string) {
+  return p.board[r].some(c => c === v)
+}
+function inCol(p: Puzzle, c: number, v: string) {
+  return p.board.some(row => row[c] === v)
+}
+function inBox(p: Puzzle, r: number, c: number, v: string) {
+  const br = Math.floor(r / BOX) * BOX
+  const bc = Math.floor(c / BOX) * BOX
+  for (let i = 0; i < BOX; i++) for (let j = 0; j < BOX; j++) if (p.board[br + i][bc + j] === v) return true
+  return false
 }
 
-export function isMoveValid(
-  board: SudokuBoard,
-  row: number,
-  col: number,
-  animalId: string,
-): boolean {
-  // Check row
-  for (let c = 0; c < SIZE; c++) {
-    if (board[row][c] === animalId) {
-      return false;
-    }
+export function isMoveValid(p: Puzzle, row: number, col: number, animalId: string) {
+  if (!p || !Array.isArray(p.board) || row < 0 || col < 0) return false
+  if (inRow(p, row, animalId)) return false
+  if (inCol(p, col, animalId)) return false
+  if (inBox(p, row, col, animalId)) return false
+  return true
+}
+
+export function getConflicts(p: Puzzle) {
+  const conflicts: { r: number; c: number }[] = []
+  for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+    const val = p.board[r][c]
+    if (!val) continue
+    // temporarily clear to test conflict
+    p.board[r][c] = null
+    if (!isMoveValid(p, r, c, val)) conflicts.push({ r, c })
+    p.board[r][c] = val
+  }
+  return conflicts
+}
+
+// Solve via backtracking — returns a deep clone of solved puzzle or null
+export function solvePuzzle(puzzle: Puzzle, animals: Animal[]) {
+  const p = {
+    ...puzzle,
+    board: puzzle.board.map(row => [...row]),
+  };
+
+  function findEmpty() {
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (!p.board[r][c]) return [r, c] as const
+    return null
   }
 
-  // Check column
-  for (let r = 0; r < SIZE; r++) {
-    if (board[r][col] === animalId) {
-      return false;
-    }
-  }
+  const ids = animals.map(a => a.id)
 
-  // Check 3x3 sub-grid
-  const startRow = Math.floor(row / 3) * 3;
-  const startCol = Math.floor(col / 3) * 3;
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
-      if (board[startRow + r][startCol + c] === animalId) {
-        return false;
+  function backtrack(): boolean {
+    const pos = findEmpty()
+    if (!pos) return true
+    const [r, c] = pos
+    for (const id of shuffle(ids)) {
+      if (isMoveValid(p, r, c, id)) {
+        p.board[r][c] = id
+        if (backtrack()) return true
+        p.board[r][c] = null
       }
     }
+    return false
   }
 
-  return true;
+  const ok = backtrack()
+  if (!ok) return null
+  return p
 }
 
-function findEmpty(board: SudokuBoard): [number, number] | null {
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      if (board[r][c] === null) {
-        return [r, c];
-      }
-    }
+function shuffle<T>(arr: T[]) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
   }
-  return null;
+  return a
 }
 
-export function solvePuzzle(
-  board: SudokuBoard,
-  animals: Animal[]
-): SudokuBoard | null {
-  const find = findEmpty(board);
-  let row, col;
-  if (!find) {
-    return board;
-  } else {
-    [row, col] = find;
+// Simple generator: fill diag boxes and solve, then remove cells
+export function generatePuzzle(difficulty: 'Easy' | 'Medium' | 'Hard' = 'Easy', animals: Animal[]) {
+  const base = emptyPuzzle()
+
+  const solved = solvePuzzle(base, animals)
+  if (!solved) throw new Error('Failed to generate base solved board')
+
+  const puzzle = {
+    ...solved,
+    board: solved.board.map(row => [...row]),
+  };
+  let removeCount = difficulty === 'Easy' ? 36 : difficulty === 'Medium' ? 46 : 54
+  while (removeCount > 0) {
+    const r = Math.floor(Math.random() * SIZE)
+    const c = Math.floor(Math.random() * SIZE)
+    if (!puzzle.board[r][c]) continue
+    puzzle.board[r][c] = null
+    removeCount--
   }
-
-  const shuffledAnimals = shuffle([...animals]);
-
-  for (const animal of shuffledAnimals) {
-    if (isMoveValid(board, row, col, animal.id)) {
-      board[row][col] = animal.id;
-
-      if (solvePuzzle(board, animals)) {
-        return board;
-      }
-
-      board[row][col] = null;
-    }
-  }
-
-  return null;
-}
-
-export function generatePuzzle(
-  difficulty: 'Easy' | 'Medium' | 'Hard',
-  animals: Animal[]
-): Puzzle {
-  const board = emptyPuzzle();
-  solvePuzzle(board, animals);
-  const solution = JSON.parse(JSON.stringify(board));
-
-  let cellsToRemove = 0;
-  switch (difficulty) {
-    case 'Easy':
-      cellsToRemove = 40;
-      break;
-    case 'Medium':
-      cellsToRemove = 50;
-      break;
-    case 'Hard':
-      cellsToRemove = 60;
-      break;
-  }
-
-  let attempts = cellsToRemove;
-  while (attempts > 0) {
-    const row = Math.floor(Math.random() * SIZE);
-    const col = Math.floor(Math.random() * SIZE);
-
-    if (board[row][col] !== null) {
-      board[row][col] = null;
-      attempts--;
-    }
-  }
-
-  return { board, solution, difficulty };
-}
-
-export function getConflicts(board: SudokuBoard): Conflict[] {
-  const conflicts: Conflict[] = [];
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      const value = board[r][c];
-      if (value === null) continue;
-      board[r][c] = null; // Temporarily remove to check validity
-      if (!isMoveValid(board, r, c, value)) {
-        conflicts.push({ row: r, col: c });
-      }
-      board[r][c] = value; // Restore the value
-    }
-  }
-  return conflicts;
+  return puzzle
 }

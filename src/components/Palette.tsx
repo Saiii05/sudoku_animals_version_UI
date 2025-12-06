@@ -1,38 +1,27 @@
-import React from 'react';
-import { Animal } from '../types';
+// src/components/Palette.tsx
+import React from 'react'
+import { Animal } from '../types'
 
-interface PaletteProps {
-  onSelect: (animal: Animal) => void;
-  selectedAnimal: Animal | null;
-  animals: Animal[];
-}
+export default function Palette({ onSelect, selectedAnimal, animals }: { onSelect: (animal: Animal) => void, selectedAnimal: Animal | null, animals: Animal[] }) {
+  // Validate animals
+  if (!Array.isArray(animals) || animals.length < 9) {
+    return <div style={{ color: '#b91c1c' }}>Invalid animal set.</div>
+  }
 
-const Palette: React.FC<PaletteProps> = ({ onSelect, selectedAnimal, animals }) => {
   return (
     <div className="flex flex-col space-y-2 p-4">
-      {animals.map((animal) => {
-        const isSelected = selectedAnimal?.id === animal.id;
-        const classes = [
-          'w-12 h-12',
-          'flex items-center justify-center',
-          'text-2xl rounded-lg cursor-pointer',
-          isSelected
-            ? 'bg-blue-500'
-            : 'bg-gray-200 dark:bg-gray-700 hover:bg-blue-200 dark:hover:bg-blue-700',
-        ].join(' ');
-
-        return (
-          <div
-            key={animal.id}
-            className={classes}
-            onClick={() => onSelect(animal)}
-          >
-            {animal.emoji}
-          </div>
-        );
-      })}
+      {animals.map((a: any) => (
+        <button
+          key={a.id}
+          onClick={() => onSelect(a)}
+          className={`flex flex-col items-center p-2 rounded-lg border ${selectedAnimal?.id === a.id ? 'ring-2 ring-offset-2' : ''}`}
+          aria-pressed={selectedAnimal?.id === a.id}
+          title={a.name}
+        >
+          <div className="text-2xl">{a.emoji}</div>
+          <div className="text-xs text-gray-500">{a.name}</div>
+        </button>
+      ))}
     </div>
-  );
-};
-
-export default Palette;
+  )
+}
